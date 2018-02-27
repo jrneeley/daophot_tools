@@ -8,7 +8,7 @@ import numpy as np
 
 # run daomatch on a list of images
 def daomatch(image_list, output_file, dao_dir='/apps/daophot32/',
-                    xy_limits=0, force_scale_rot=0, force_scale=0):
+                    xy_limits=None, force_scale_rot=0, force_scale=0):
 
 ## run DAOMATCH on on fields
     daomatch = pexpect.spawn(dao_dir+'daomatch')
@@ -16,11 +16,11 @@ def daomatch(image_list, output_file, dao_dir='/apps/daophot32/',
 
     daomatch.expect("Master input file")
     first_file = image_list[0]
-    if xy_limits == 1:
+    if xy_limits != None:
         daomatch.sendline(first_file+'*')
         daomatch.expect('Ymin, Ymax')
         daomatch.sendline(limits)
-    if xy_limits == 0:
+    if xy_limits == None:
         daomatch.sendline(first_file)
     daomatch.expect("Output file")
     daomatch.sendline(output_file)
