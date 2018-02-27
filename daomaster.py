@@ -60,6 +60,9 @@ def daomaster(matchfile, dao_dir='/apps/daophot32/', frame_num='12, 0.5, 24',
     daomaster.sendline(new_id)
     daomaster.expect("A file with mean magnitudes")
     daomaster.sendline(mag_file)
+    if mag_file == 'y':
+        daomaster.expect("New output")
+        daophot.sendline(magfile)
     daomaster.expect("A file with corrected magnitudes")
     daomaster.sendline(corr_file)
     daomaster.expect("A file with raw magnitudes")
