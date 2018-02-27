@@ -27,27 +27,31 @@ def daomatch(image_list, output_file, dao_dir='/apps/daophot32/',
     check = daomatch.expect(["Next input file", "New output file"])
     if check == 1:
         daomatch.sendline("")
+
     # define appropriate suffix for images
     suffix = ''
     if force_scale_rot == 1:
         suffix = ';'
     if force_scale != 0:
         suffix = '/'+str(force_scale)
-    if xy_limits == 1:
-        suffix += + '!'
+    if xy_limits != None:
+        suffix += '!'
 
     for image in image_list:
         if image == first_file:
             continue
+#            if check == 0:
+        daomatch.sendline(image+suffix)
         check = daomatch.expect(["Next input file", "Write this transformation"])
-        if check == 0:
-            daomatch.sendline(image+suffix)
+
         if check == 1:
             daomatch.sendline('y')
-            daomatch.expect('Next input file')
-            daomatch.sendline(image+suffix)
+        if check == 0:
+            continue
+#            daomatch.expect('Next input file')
+#            daomatch.sendline(image+suffix)
 
-    daomatch.expect("Next input file")
+#    daomatch.expect("Next input file")
     daomatch.sendline("")
     daomatch.expect("Good bye")
     daomatch.close()
