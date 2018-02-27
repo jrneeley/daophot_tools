@@ -19,7 +19,7 @@ def daomatch(image_list, output_file, dao_dir='/apps/daophot32/',
     if xy_limits != None:
         daomatch.sendline(first_file+'*')
         daomatch.expect('Ymin, Ymax')
-        daomatch.sendline(limits)
+        daomatch.sendline(xy_limits)
     if xy_limits == None:
         daomatch.sendline(first_file)
     daomatch.expect("Output file")
