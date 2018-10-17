@@ -48,26 +48,36 @@ def read_mag(mag_file):
 
 def read_mch(mch_file):
 
-    file_list = []
-    x_offset = []
-    y_offset = []
-    transform_matrix = []
     f = open(mch_file, 'r')
-    for line in f:
+    lines = f.readlines()
+    n_lines = len(lines)
+
+    dt = np.dtype([('file', 'S30'), ('x_offset', float), ('y_offset', float), ('transform_matrix', float, (4,))])
+    simple_transform = np.zeros(n_lines, dtype=dt)
+
+    file_list = np.zeros(n_lines, dtype='S30')
+    x_offset = np.zeros(n_lines)
+    y_offset = np.zeros(n_lines)
+    transform = np.zeros((n_lines, 4))
+
+    for ii, line in enumerate(lines):
         temp = line.split()
-        n=len(temp[0])
         file_name = temp[0].replace('\'','')
         file_name = file_name.split(':')
         if len(file_name) == 1:
-            file_list.append(file_name[0])
+            file_list[ii] = file_name[0]
         if len(file_name) != 1:
-            file_list.append(file_name[1])
-        x_offset.append(temp[2])
-        y_offset.append(temp[3])
-        transform_matrix.append(temp[4:-2])
-    dof = len(transform_matrix[1])
+            file_list[ii] = file_name[1]
+        x_offset[ii] = temp[2]
+        y_offset[ii] = temp[3]
+        transform[ii] = temp[4:8]
 
-    return file_list, x_offset, y_offset, transform_matrix, dof
+    simple_transform['file'] = file_list
+    simple_transform['x_offset'] = x_offset
+    simple_transform['y_offset'] = y_offset
+    simple_transform['transform_matrix'] = transform
+
+    return simple_transform
 
 def read_nmg(nmg_file):
 
@@ -114,5 +124,13 @@ def read_coo_new(coo_file):
     dtype1 = np.dtype([('id', int), ('x', float), ('y', float), ('mag1', float),
         ('err', float), ('mag2', float)])
     data = np.loadtxt(coo_file, dtype=dtype1, usecols=(0,1,2,3,4,5), skiprows=3)
+
+    return data
+
+
+def read_add(add_file):
+
+    dtype = np.dtype([('id', int), ('x', float), ('y', float), ('mag', float)])
+    data = np.loadtxt(add_file, dtype=dtype, skiprows=3)
 
     return data
