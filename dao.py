@@ -10,7 +10,8 @@ import config
 #                          DAOPHOT
 ###############################################################################
 
-def find(fitsfile, num_frames='1,1', coo_file='', opt_file='', verbose=0):
+def find(fitsfile, num_frames='1,1', coo_file='', opt_file='', new_thresh=0,
+    verbose=0):
 
     dao_dir = config.dao_dir
     image = re.sub(".fits","", fitsfile)
@@ -26,6 +27,9 @@ def find(fitsfile, num_frames='1,1', coo_file='', opt_file='', verbose=0):
     daophot.expect('File with parameters')
     daophot.sendline(opt_file)
     daophot.expect('OPT>')
+    if new_thresh > 0:
+        daophot.sendline('th={}'.format(new_thresh))
+        daophot.expect('OPT>')
     daophot.sendline('')
 
 # ATTACH
@@ -98,6 +102,7 @@ def phot(fitsfile, phot_file='', coo_file='', ap_file='', opt_file='', verbose=1
         daophot.sendline("exit")
     daophot.close(force=True)
 
+# Not well tested....
 def find_psf(fitsfile, opt_file=''):
 
     file_stem = re.sub(".fits","", fitsfile)
@@ -143,9 +148,11 @@ def find_psf(fitsfile, opt_file=''):
     print "PSF complete"
 
 
-def substar(fitsfile):
+def substar(fitsfile, leave_stars=1, verbose=1):
 
 	daophot = pexpect.spawn(config.dao_dir+'daophot')
+    if verbose == 1:
+        daophot.logfile = sys.stdout
 
 	daophot.expect('Command:')
 	daophot.sendline('at '+fitsfile)
@@ -156,18 +163,22 @@ def substar(fitsfile):
 	daophot.expect('File with photometry')
 	daophot.sendline('.als')
 	daophot.expect('stars to leave in?')
-	daophot.sendline('y')
-	daophot.expect('File with star list')
-	daophot.sendline('')
+    if leave_stars == 1:
+        daophot.sendline('y')
+        daophot.expect('File with star list')
+        daophot.sendline('')
 	daophot.expect('Name for subtracted image')
 	daophot.sendline('')
 	daophot.expect('Command:')
 	daophot.sendline('ex')
 	daophot.close(force=True)
 
-def offset(filename, id_offset=0, x_offset=0.0, y_offset=0.0, mag_offset=0.0):
+def offset(filename, id_offset=0, x_offset=0.0, y_offset=0.0, mag_offset=0.0,
+    verbose=1):
 
     daophot = pexpect.spawn(config.dao_dir+'daophot')
+    if verbose == 1:
+        daophot.logfile = sys.stdout
 
     daophot.expect('Command')
     daophot.sendline('off')
@@ -233,7 +244,7 @@ def sort(in_file, out_file='', sort_option='3', renumber='y', verbose=0):
         daophot.sendline(renumber)
     if check == 0:
         daophot.sendline(renumber)
-    #print 'made it'
+
     daophot.expect('Command:')
     daophot.sendline('exit')
     daophot.close(force=True)
@@ -299,12 +310,12 @@ def addstar(image, file_stem='fake', num_images = 1, seed=5, gain=999, star_list
 #                          ALLSTAR
 ###############################################################################
 
-def allstar(fitsfile, new_options=0, verbose=0):
+def allstar(fitsfile, new_options=0, sub_img='', suppress=0, verbose=0):
 
     file_stem = re.sub(".fits","", fitsfile)
 
 ## Running ALLSTAR
-    allstar = pexpect.spawn(config.dao_dir+'allstar', timeout=240)
+    allstar = pexpect.spawn(config.dao_dir+'allstar', timeout=None)
 
     if verbose == 1:
         allstar.logfile = sys.stdout
@@ -330,14 +341,15 @@ def allstar(fitsfile, new_options=0, verbose=0):
     if check == 1:
         allstar.sendline("")
         allstar.expect("Name for subtracted image")
-        allstar.sendline("")
-        #print 'made it 1'
-    if check == 0:
-        allstar.sendline("")
-    #print 'made it 2'
-    #allstar.expect("stars")
-    allstar.expect("Good bye")
-    allstar.close(force=True)
+    if suppress == 0:
+        allstar.sendline(sub_img)
+        allstar.expect("Goodbye")
+        allstar.close(force=True)
+    if suppress == 1:
+        allstar.sendcontrol("d")
+        allstar.sendcontrol("c")
+        allstar.close(force=True)
+
 
 ###############################################################################
 #                    DAOMATCH/ DAOMASTER
@@ -500,7 +512,7 @@ def combine_mch_simple(mch_list, output_file='combine.mch'):
 ###############################################################################
 #                          ALLFRAME
 ###############################################################################
-def allframe(image_list, star_list, verbose=0):
+def allframe(image_list, star_list, verbose=1):
 
     # need very long timeout
     allframe = pexpect.spawn(config.dao_dir+'allframe')
