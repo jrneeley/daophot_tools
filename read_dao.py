@@ -5,26 +5,56 @@ import numpy as np
 import matplotlib.pyplot as mp
 
 
-def read_raw(raw_file):
+def read_raw(raw_file, filters=[], mjds=[]):
 
     f = open(raw_file, 'r')
     lines = f.readlines()
     nstars = 0
-    mags_all=[['header']]
+    data_all=[['header']]
 
     for line in lines:
         temp = line.split()
         if len(temp) == 15:
             nstars += 1
-            mags_all.append(temp)
+            data_all.append(temp)
         if len(temp) < 15:
-            mags_all[nstars]=mags_all[nstars]+temp
+            data_all[nstars]=data_all[nstars]+temp
 
-    star_ids = [item[0] for item in mags_all]
-    star_ids.remove(star_ids[0])
-    mags_all.remove(mags_all[0])
+    #star_ids = [item[0] for item in mags_all]
+    #star_ids.remove(star_ids[0])
+    data_all.remove(data_all[0])
+    star_ids = [item[0] for item in data_all]
+    star_x = [item[1] for item in data_all]
+    star_y = [item[2] for item in data_all]
+    star_chi = [item[-2] for item in data_all]
+    star_sharp = [item[-1] for item in data_all]
 
-    return star_ids, mags_all
+    nstars = len(star_ids)
+    nobs = len(data_all[0][3:-2])/2
+
+    dt = np.dtype([('ids', int), ('x', float), ('y', float),
+        ('filters', (np.str_,10), nobs), ('mjds', float, nobs),
+        ('mags', float, nobs), ('errs', float, nobs),
+        ('chi', float), ('sharp', float)])
+    data = np.zeros(nstars, dtype=dt)
+    data['ids'] = star_ids
+    data['x'] = star_x
+    data['y'] = star_y
+    data['chi'] = star_chi
+    data['sharp'] = star_sharp
+    for i in range(nstars):
+        data['mags'][i] = data_all[i][3:-2:2]
+        data['errs'][i] = data_all[i][4:-2:2]
+
+        if len(filters) == 0:
+            data['filters'][i] = np.repeat('F', nobs)
+        else:
+            data['filters'][i] = filters
+        if len(mjds) == 0:
+            data['mjds'][i] = np.repeat(np.nan, nobs)
+        else:
+            data['mjds'][i] = mjds
+    return data
 
 def read_coo(coo_file):
 

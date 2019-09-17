@@ -150,28 +150,28 @@ def find_psf(fitsfile, opt_file=''):
 
 def substar(fitsfile, leave_stars=1, verbose=1):
 
-	daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot')
     if verbose == 1:
         daophot.logfile = sys.stdout
 
-	daophot.expect('Command:')
-	daophot.sendline('at '+fitsfile)
-	daophot.expect('Command:')
-	daophot.sendline('substar')
-	daophot.expect('File with the PSF')
-	daophot.sendline('')
-	daophot.expect('File with photometry')
-	daophot.sendline('.als')
-	daophot.expect('stars to leave in?')
+    daophot.expect('Command:')
+    daophot.sendline('at '+fitsfile)
+    daophot.expect('Command:')
+    daophot.sendline('substar')
+    daophot.expect('File with the PSF')
+    daophot.sendline('')
+    daophot.expect('File with photometry')
+    daophot.sendline('.als')
+    daophot.expect('stars to leave in?')
     if leave_stars == 1:
         daophot.sendline('y')
         daophot.expect('File with star list')
         daophot.sendline('')
-	daophot.expect('Name for subtracted image')
-	daophot.sendline('')
-	daophot.expect('Command:')
-	daophot.sendline('ex')
-	daophot.close(force=True)
+    daophot.expect('Name for subtracted image')
+    daophot.sendline('')
+    daophot.expect('Command:')
+    daophot.sendline('ex')
+    daophot.close(force=True)
 
 def offset(filename, id_offset=0, x_offset=0.0, y_offset=0.0, mag_offset=0.0,
     verbose=1):
@@ -343,11 +343,12 @@ def allstar(fitsfile, new_options=0, sub_img='', suppress=0, verbose=0):
         allstar.expect("Name for subtracted image")
     if suppress == 0:
         allstar.sendline(sub_img)
-        allstar.expect("Goodbye")
+        allstar.expect("Good bye")
         allstar.close(force=True)
     if suppress == 1:
         allstar.sendcontrol("d")
-        allstar.sendcontrol("c")
+        allstar.expect("Good bye")
+        #allstar.sendcontrol("c") - not working right now
         allstar.close(force=True)
 
 
