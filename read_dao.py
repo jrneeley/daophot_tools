@@ -12,13 +12,22 @@ def read_raw(raw_file, filters=[], mjds=[]):
     nstars = 0
     data_all=[['header']]
 
-    for line in lines:
+    for i, line in enumerate(lines):
+        # skip header lines
+        if i <= 2:
+            continue
         temp = line.split()
+        if i == 3:
+            nmax = len(temp)
         if len(temp) == 15:
             nstars += 1
             data_all.append(temp)
         if len(temp) < 15:
-            data_all[nstars]=data_all[nstars]+temp
+            if len(temp) == nmax:
+                nstars += 1
+                data_all.append(temp)
+            else:
+                data_all[nstars]=data_all[nstars]+temp
 
     #star_ids = [item[0] for item in mags_all]
     #star_ids.remove(star_ids[0])
@@ -33,7 +42,7 @@ def read_raw(raw_file, filters=[], mjds=[]):
     nobs = len(data_all[0][3:-2])/2
 
     dt = np.dtype([('ids', int), ('x', float), ('y', float),
-        ('filters', (np.str_,10), nobs), ('mjds', float, nobs),
+        ('filters', (np.unicode_,10), nobs), ('mjds', float, nobs),
         ('mags', float, nobs), ('errs', float, nobs),
         ('chi', float), ('sharp', float)])
     data = np.zeros(nstars, dtype=dt)
