@@ -1,6 +1,5 @@
 import numpy as np
 import sys
-sys.path.insert(0,'/home/jill/python/')
 import AstroTools as at
 from . import read_dao
 
