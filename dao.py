@@ -4,7 +4,7 @@ import numpy as np
 import pexpect
 import sys
 import matplotlib.pyplot as mp
-import config
+from . import config
 
 ###############################################################################
 #                          DAOPHOT
@@ -115,7 +115,7 @@ def find_psf(fitsfile, opt_file=''):
             os.remove(file_stem + ext)
 
     image = fitsfile
-    print "Working on " + image
+    print("Working on " + image)
 
 #Running daophot
     daophot = pexpect.spawn(config.dao_dir+'daophot')
@@ -145,7 +145,7 @@ def find_psf(fitsfile, opt_file=''):
     daophot.expect("Command:")
     daophot.sendline("exit")
     daophot.close(force=True)
-    print "PSF complete"
+    print("PSF complete")
 
 
 def substar(fitsfile, leave_stars=1, verbose=1):
@@ -204,14 +204,14 @@ def append(file1, file2, out_file='', verbose=0):
     daophot = pexpect.spawn(config.dao_dir+'daophot')
     if verbose == 1:
         daophot.logfile = sys.stdout
-	daophot.expect('Command:')
-	daophot.sendline('append')
-	daophot.expect('First input file')
-	daophot.sendline(file1)
-	daophot.expect('Second input file')
-	daophot.sendline(file2)
-	daophot.expect('Output file')
-	daophot.sendline(out_file)
+    daophot.expect('Command:')
+    daophot.sendline('append')
+    daophot.expect('First input file')
+    daophot.sendline(file1)
+    daophot.expect('Second input file')
+    daophot.sendline(file2)
+    daophot.expect('Output file')
+    daophot.sendline(out_file)
     check = daophot.expect(['Command:', 'OVERWRITE'])
     if check == 1:
         daophot.sendline('')
@@ -229,8 +229,8 @@ def sort(in_file, out_file='', sort_option='3', renumber='y', verbose=0):
     daophot = pexpect.spawn(config.dao_dir+'daophot')
     if verbose == 1:
         daophot.logfile = sys.stdout
-	daophot.expect('Command:')
-	daophot.sendline('sort')
+    daophot.expect('Command:')
+    daophot.sendline('sort')
     daophot.expect('Which do you want')
     daophot.sendline(sort_option)
     daophot.expect('Input file name')
@@ -279,6 +279,13 @@ def addstar(image, file_stem='fake', num_images = 1, seed=5, gain=999, star_list
     if star_list != None:
         daophot.sendline(star_list)
         daophot.expect('Output picture name')
+        daophot.sendline(file_stem+'01')
+        check = daophot.expect(['Input data file', 'really what you want?'])
+        if check == 0:
+            daophot.sendline('')
+        if check == 1:
+            daophot.sendline('y')
+        daophot.expect('Input data file')
         daophot.sendline('')
         daophot.expect('Command')
         daophot.sendline('ex')
@@ -376,7 +383,7 @@ def daomatch(image_list, output_file, verbose=0,
         daomatch.sendline(first_file)
     else:
         daomatch.close(force=True)
-        print 'Must provide 4 limits! (xmin, xmax, ymin, ymax)'
+        print('Must provide 4 limits! (xmin, xmax, ymin, ymax)')
     daomatch.expect("Output file")
     daomatch.sendline(output_file)
     check = daomatch.expect(["Next input file", "OVERWRITE"])

@@ -1,5 +1,5 @@
-import dao
-import read_dao
-import write_dao
-import config
-import other
+from . import dao
+from . import read_dao
+from . import write_dao
+from . import config
+from . import other

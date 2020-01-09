@@ -39,10 +39,10 @@ def read_raw(raw_file, filters=[], mjds=[]):
     star_sharp = [item[-1] for item in data_all]
 
     nstars = len(star_ids)
-    nobs = len(data_all[0][3:-2])/2
+    nobs = int(len(data_all[0][3:-2])/2)
 
     dt = np.dtype([('ids', int), ('x', float), ('y', float),
-        ('filters', (np.unicode_,10), nobs), ('mjds', float, nobs),
+        ('filters', 'U10', nobs), ('mjds', float, nobs),
         ('mags', float, nobs), ('errs', float, nobs),
         ('chi', float), ('sharp', float)])
     data = np.zeros(nstars, dtype=dt)
@@ -73,6 +73,48 @@ def read_coo(coo_file):
 
     return data
 
+def read_ap_long(ap_file):
+
+    f = open(ap_file, 'r')
+    lines = f.readlines()
+    nstars = 0
+    data_all=[]
+
+    for i, line in enumerate(lines):
+        # skip header lines
+        if i <= 2:
+            continue
+        # get array from line
+        temp = line.split()
+        if len(temp) == 0:
+            nstars += 1
+            start = 1
+            continue
+        if start == 1:
+            data_all.append(temp)
+            start = 0
+        elif start == 0:
+            data_all[nstars-1]=data_all[nstars-1]+temp
+
+    n = len(data_all[0])
+    n_aps = int((n - 6)/2)
+
+
+    dt = np.dtype([('ids', int), ('x', float), ('y', float),
+        ('mags', float, n_aps), ('errs', float, n_aps),
+        ('modal_sky', float), ('std_sky', float), ('skew_sky', float)])
+    data = np.zeros(nstars, dtype=dt)
+    data['ids'] = [item[0] for item in data_all]
+    data['x'] = [item[1] for item in data_all]
+    data['y'] = [item[2] for item in data_all]
+    data['modal_sky'] = [item[n_aps+3] for item in data_all]
+    data['std_sky'] = [item[n_aps+4] for item in data_all]
+    data['skew_sky'] = [item[n_aps+5] for item in data_all]
+
+    data['mags'] = [item[3:3+n_aps] for item in data_all]
+    data['errs'] = [item[n_aps+6:] for item in data_all]
+
+    return data
 
 def read_ap(ap_file):
 # Needs checking
@@ -157,7 +199,7 @@ def read_lst(lst_file):
 def read_alf(alf_file):
 
     dtype1 = np.dtype([('id', int), ('x', float), ('y', float), ('mag', float),
-        ('err', float), ('sky', float), ('N iters', int), ('chi', float),
+        ('err', float), ('sky', float), ('N iters', float), ('chi', float),
         ('sharp', float)])
     data = np.loadtxt(alf_file, dtype=dtype1, skiprows=3)
 

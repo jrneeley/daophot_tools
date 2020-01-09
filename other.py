@@ -2,7 +2,7 @@ import numpy as np
 import sys
 sys.path.insert(0,'/home/jill/python/')
 import AstroTools as at
-import read_dao
+from . import read_dao
 
 def dao2reg(infile, outfile, ids=1, color='green', radius=10):
 
@@ -20,7 +20,7 @@ def dao2reg(infile, outfile, ids=1, color='green', radius=10):
             f.write('circle {:7.2f} {:7.2f} {} \n'.format(data[ii,1],data[ii,2], radius))
     f.close()
 
-#### DO NOT USE - NOT COMPLETE 
+#### DO NOT USE - NOT COMPLETE
 def make_catalog(filters, star_list='median.off', mch_file='alf.mch'):
 
     n_filters = len(filters)
