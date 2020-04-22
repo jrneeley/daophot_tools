@@ -126,6 +126,30 @@ def read_ap(ap_file):
     err = data['mag'][1::2]
     return ids, mags, err
 
+def read_head(mag_file):
+     
+    f = open(mag_file, 'r')
+    line0 = f.readline()
+    line1 = f.readline()
+    temp = line1.split()
+
+    dt = np.dtype([('NL', int), ('NX', int), ('NY', int), ('LOWBAD', float), 
+                   ('HIGHBAD', float), ('THRESH', float), ('AP1', float), 
+                   ('PHPADU', float), ('RNOISE', float), ('FRAD', float)])
+    head = np.zeros(1, dtype=dt)
+    head['NL'] = temp[0]
+    head['NX'] = temp[1]
+    head['NY'] = temp[2]
+    head['LOWBAD'] = temp[3]
+    head['HIGHBAD'] = temp[4]
+    head['THRESH'] = temp[5]
+    head['AP1'] = temp[6]
+    head['PHPADU'] = temp[7]
+    head['RNOISE'] = temp[8]
+    head['FRAD'] = temp[9]
+
+    return head
+
 def read_mag(mag_file):
 
     dtype1 = np.dtype([('id', int), ('x', float), ('y', float), ('mag', float),
@@ -140,33 +164,26 @@ def read_mch(mch_file):
     f = open(mch_file, 'r')
     lines = f.readlines()
     n_lines = len(lines)
+    
+    # determine degrees of freedom in transformation
+    line1 = lines[0].split()
+    dof = len(line1[2:-2])
 
-    dt = np.dtype([('file', 'S30'), ('x_offset', float), ('y_offset', float), ('transform_matrix', float, (4,))])
-    simple_transform = np.zeros(n_lines, dtype=dt)
-
-    file_list = np.zeros(n_lines, dtype='S30')
-    x_offset = np.zeros(n_lines)
-    y_offset = np.zeros(n_lines)
-    transform = np.zeros((n_lines, 4))
-
-    for ii, line in enumerate(lines):
-        temp = line.split()
-        file_name = temp[0].replace('\'','')
+    dt = np.dtype([('filename', 'U30'), ('dof', int),
+                ('transform_matrix', float, (dof,))])
+    data = np.zeros(n_lines, dtype=dt)
+    for i in range(n_lines):
+        data['dof'][i] = dof
+        temp = lines[i].split()
+        file_name = temp[0].replace('\'', '')
         file_name = file_name.split(':')
         if len(file_name) == 1:
-            file_list[ii] = file_name[0]
-        if len(file_name) != 1:
-            file_list[ii] = file_name[1]
-        x_offset[ii] = temp[2]
-        y_offset[ii] = temp[3]
-        transform[ii] = temp[4:8]
+            data['filename'][i] = file_name[0]
+        else:
+            data['filename'][i] = file_name[1]
+        data['transform_matrix'][i] = temp[2:-2]
 
-    simple_transform['file'] = file_list
-    simple_transform['x_offset'] = x_offset
-    simple_transform['y_offset'] = y_offset
-    simple_transform['transform_matrix'] = transform
-
-    return simple_transform
+    return data
 
 def read_nmg(nmg_file):
 

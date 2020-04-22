@@ -5,7 +5,7 @@ import pexpect
 import sys
 import matplotlib.pyplot as mp
 from . import config
-
+from . import read_dao
 ###############################################################################
 #                          DAOPHOT
 ###############################################################################
@@ -416,26 +416,55 @@ def daomatch(image_list, output_file, verbose=0,
     daomatch.close()
 
 
-def check_daomatch(mch_file):
+def check_daomatch(mch_file, bright_only=True):
 
-    img_list, x_offsets, y_offsets, transform, dof = read_dao.read_mch(mch_file)
-
+    #img_list, x_offsets, y_offsets, transform, dof = read_dao.read_mch(mch_file)
+    tran = read_dao.read_mch(mch_file) 
+    img_list = tran['filename']
+    dof = tran['dof'][0]
+    transform = tran['transform_matrix']
+   
     n_imgs = len(img_list)
     master_frame = read_dao.read_alf(img_list[0])
 
     master_order = np.argsort(master_frame['mag'])
-    master_brightest = master_order[0:100]
+    if bright_only == True: 
+        use = master_order[0:100]
+    else: 
+        use = master_order
 
     for ind in range(1,n_imgs):
         fig = mp.figure(figsize=(10,8))
         ax1 = fig.add_subplot(111)
-        ax1.plot(master_frame['x'][master_brightest], master_frame['y'][master_brightest], 'b.', alpha=0.5, markersize=15)
+        ax1.plot(master_frame['x'][use], master_frame['y'][use], 'b.', alpha=0.5, markersize=15)
+        print(img_list[ind])
         data = read_dao.read_alf(img_list[ind])
         data_order = np.argsort(data['mag'])
-        data_brightest = data_order[0:100]
-        x_new = float(x_offsets[ind]) + float(transform[ind][0])*data['x'] + float(transform[ind][1])*data['y']
-        y_new = float(y_offsets[ind]) + float(transform[ind][2])*data['x'] + float(transform[ind][3])*data['y']
-        ax1.plot(x_new[data_brightest], y_new[data_brightest], 'r.', alpha=0.5, markersize=15)
+        if bright_only == True: 
+            use = data_order[0:100]
+        else: 
+            use = data_order
+
+        # apply transformation 
+        x_new = transform[ind][0] + transform[ind][2]*data['x'] + transform[ind][4]*data['y']
+        y_new = transform[ind][1] + transform[ind][3]*data['x'] + transform[ind][5]*data['y']         
+        
+        if dof >= 12:
+            head = read_dao.read_head(img_list[ind])
+            ncol = head['NX']
+            nrow = head['NY'] 
+            xs = 2*(data['x']-1)/(ncol-1) - 1 
+            ys = 2*(data['y']-1)/(nrow-1) - 1
+            xy = xs*ys
+            x2 = 1.5*xs**2-0.5
+            y2 = 1.5*ys**2-0.5
+            x_new += transform[ind][6]*x2 + transform[ind][8]*xy + transform[ind][10]*y2
+            y_new += transform[ind][7]*x2 + transform[ind][9]*xy + transform[ind][11]*y2
+        if dof >= 20: 
+            x_new += (transform[ind][12]*xs + transform[ind][14]*ys)*x2 + (transform[ind][16]*xs + transform[ind][18]*ys)*y2
+            y_new += (transform[ind][13]*xs + transform[ind][15]*ys)*x2 + (transform[ind][17]*xs + transform[ind][19]*ys)*y2  
+        
+        ax1.plot(x_new[use], y_new[use], 'r.', alpha=0.5, markersize=15)
         ax1.set_title(img_list[ind])
         ax1.set_xlabel('x')
         ax1.set_ylabel('y')
