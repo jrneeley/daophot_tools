@@ -17,9 +17,11 @@ def find(fitsfile, num_frames='1,1', coo_file='', opt_file='', new_thresh=0,
     image = re.sub(".fits","", fitsfile)
 
 ## Running daophot
-    daophot = pexpect.spawn(dao_dir+'daophot')
+    daophot = pexpect.spawn(dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
+    elif isinstance(verbose, str):
+        daophot.logfile = open(verbose, 'w')
 
 # Load appropriate opt file and edit threshold if necessary
     daophot.expect('Command:')
@@ -51,6 +53,8 @@ def find(fitsfile, num_frames='1,1', coo_file='', opt_file='', new_thresh=0,
         daophot.sendline("y")
     daophot.expect('Command:')
     daophot.sendline('exit')
+    if isinstance(verbose, str):
+        daophot.logfile.close()
     daophot.close(force=True)
 
 def phot(fitsfile, phot_file='', coo_file='', ap_file='', opt_file='', verbose=1):
@@ -59,7 +63,7 @@ def phot(fitsfile, phot_file='', coo_file='', ap_file='', opt_file='', verbose=1
     image = re.sub(".fits","", fitsfile)
 
 ## Running daophot
-    daophot = pexpect.spawn(dao_dir+'daophot')
+    daophot = pexpect.spawn(dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
 
@@ -118,7 +122,7 @@ def find_psf(fitsfile, opt_file=''):
     print("Working on " + image)
 
 #Running daophot
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     daophot.logfile = sys.stdout
 
 # Load appropriate opt file and edit threshold if necessary
@@ -150,7 +154,7 @@ def find_psf(fitsfile, opt_file=''):
 
 def substar(fitsfile, leave_stars=1, verbose=1):
 
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
 
@@ -176,7 +180,7 @@ def substar(fitsfile, leave_stars=1, verbose=1):
 def offset(filename, id_offset=0, x_offset=0.0, y_offset=0.0, mag_offset=0.0,
     verbose=1):
 
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
 
@@ -201,7 +205,7 @@ def offset(filename, id_offset=0, x_offset=0.0, y_offset=0.0, mag_offset=0.0,
 
 def append(file1, file2, out_file='', verbose=0):
 
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
     daophot.expect('Command:')
@@ -226,7 +230,7 @@ def sort(in_file, out_file='', sort_option='3', renumber='y', verbose=0):
     # sort option +- 3 -> increasing/decreasing Y
     # sort option +- 4 -> increasing/decreasing magnitude
 
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     if verbose == 1:
         daophot.logfile = sys.stdout
     daophot.expect('Command:')
@@ -252,7 +256,7 @@ def sort(in_file, out_file='', sort_option='3', renumber='y', verbose=0):
 def addstar(image, file_stem='fake', num_images = 1, seed=5, gain=999, star_list=None,
     min_mag=12, max_mag=18, num_stars=50, opt_file='', verbose=0):
 
-    daophot = pexpect.spawn(config.dao_dir+'daophot')
+    daophot = pexpect.spawn(config.dao_dir+'daophot', encoding='utf-8')
     if verbose == 1: daophot.logfile = sys.stdout
 
     # Make sure we are using the appropriate options file
@@ -322,7 +326,7 @@ def allstar(fitsfile, new_options=0, sub_img='', suppress=0, verbose=0):
     file_stem = re.sub(".fits","", fitsfile)
 
 ## Running ALLSTAR
-    allstar = pexpect.spawn(config.dao_dir+'allstar', timeout=None)
+    allstar = pexpect.spawn(config.dao_dir+'allstar', encoding='utf-8', timeout=None)
 
     if verbose == 1:
         allstar.logfile = sys.stdout
@@ -368,7 +372,7 @@ def daomatch(image_list, output_file, verbose=0,
                     xy_limits=[], force_scale_rot=0, force_scale=0):
 
 ## run DAOMATCH on on fields
-    daomatch = pexpect.spawn(config.dao_dir+'daomatch')
+    daomatch = pexpect.spawn(config.dao_dir+'daomatch', encoding='utf-8')
     if verbose == 1:
         daomatch.logfile = sys.stdout
 
@@ -477,7 +481,7 @@ def daomaster(matchfile, frame_num='12, 0.5, 12', sigma='5',
 # IN PROGRESS - FIX SO ALL OPTIONS WORK
 
 
-    daomaster = pexpect.spawn(config.dao_dir+'daomaster')
+    daomaster = pexpect.spawn(config.dao_dir+'daomaster', encoding='utf-8')
     if verbose == 1:
         daomaster.logfile = sys.stdout
 
@@ -552,7 +556,7 @@ def combine_mch_simple(mch_list, output_file='combine.mch'):
 def allframe(image_list, star_list, verbose=1):
 
     # need very long timeout
-    allframe = pexpect.spawn(config.dao_dir+'allframe')
+    allframe = pexpect.spawn(config.dao_dir+'allframe', encoding='utf-8')
     if verbose == 1:
         allframe.logfile = sys.stdout
 
